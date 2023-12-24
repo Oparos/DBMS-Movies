@@ -94,7 +94,7 @@ RETURNS TRIGGER AS $$
 DECLARE
     available_tickets INTEGER;
 BEGIN
-    SELECT liczba_dospenych_biletow
+    SELECT liczba_dostpenych_biletow
     INTO available_tickets
     FROM seanse
     WHERE seans_id = NEW.seans_id;
@@ -146,7 +146,45 @@ BEFORE INSERT ON bilety
 FOR EACH ROW
 EXECUTE FUNCTION check_seat_availability();
 
+
 -- TRIGGER sprawdzajacy czy podano opdopwiednie miejsce
+
+
+CREATE or REPLACE function validate_NO_seats()
+RETURNS trigger as $$
+BEGIN
+    if new.numer_koncowy_miejsca-new.numer_poczatkowy_miejsca +1 != new.liczba_dospenych_biletow THEN
+        RAISE EXCEPTION 'liczba biletow powinna byc rowna ilosc miejsc';
+    END if;
+    RETURN new
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validate_NO_seats_trigger
+BEFORE INSERT ON Seanse
+FOR EACH ROW
+EXECUTE FUNCTION validate_NO_seats();
+
+-- trigger sprawdzajacy czy wporwadzono poprawne ilosc miejsc
+
+CREATE or REPLACE function validate_date()
+RETURNS trigger as $$
+BEGIN
+    if new.data_poczatek < NOW()::TIMESTAMP OR new.data_koniec < NOW()::TIMESTAMP THEN
+        RAISE EXCEPTION 'seans nie moze sie odbyc w przeszlosci :)';
+    END if;
+    if new.data_koniec<new.data_poczatek 
+        RAISE EXCEPTION 'poczatek seansu musi byc wczensniej niz koniec';
+    END if;
+    RETURN new
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validate_date_trigger
+BEFORE INSERT ON Seanse
+FOR EACH ROW
+EXECUTE FUNCTION validate_date();
+-- trigger sprawdzajacy czy wporwadzono poprawne daty
 
 CREATE OR REPLACE FUNCTION check_movie_availability()
 RETURNS TRIGGER AS $$
@@ -180,6 +218,24 @@ EXECUTE FUNCTION check_movie_availability();
 
 -- trigger sprawdzajacy czy film jest w odpowiednij luce czasowej
 
+
+
+CREATE OR REPLACE FUNCTION update_NO_seats()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE seanse
+    SET liczba_dostepnych_biletow = liczba_dostepnych_biletow - 1
+    WHERE seans_id = NEW.seans_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_NO_seats_trigger
+AFTER insert ON bilety
+FOR EACH ROW
+EXECUTE FUNCTION update_NO_seats();
+
+-- trigger aktuaolizujacy liczba dostpenych miejsc
 
 
 
