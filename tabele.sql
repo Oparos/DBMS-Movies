@@ -21,16 +21,6 @@ CREATE TABLE FilmAktor (
     id_aktora INT REFERENCES Aktorzy(aktor_id), -- Zmiana na id_aktora
     rola VARCHAR(255)
 );
-CREATE TABLE Kategorie (
-    kategoria_id SERIAL PRIMARY KEY,
-    nazwa_kategorii VARCHAR(255)
-);
-
-CREATE TABLE FilmyKategorie (
-    film_id INT REFERENCES Filmy(film_id),
-    kategoria_id INT REFERENCES Kategorie(kategoria_id),
-    PRIMARY KEY(film_id, kategoria_id)
-);
 
 CREATE TABLE Uzytkownicy (
     uzytkownik_id SERIAL PRIMARY KEY,
@@ -38,7 +28,7 @@ CREATE TABLE Uzytkownicy (
     haslo VARCHAR(255),
     imie VARCHAR(255),
     nazwisko VARCHAR(255),
-    recenzent BOOLEAN
+    admin BOOLEAN
 );
 
 CREATE TABLE Recenzje (
