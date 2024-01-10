@@ -89,31 +89,6 @@ EXECUTE FUNCTION check_positive_rating();
 
 -- trigger spradzaijacy czy ocena jest wieksza do 0.0
 
-CREATE OR REPLACE FUNCTION check_available_tickets(id INTEGER)
-RETURNS TRIGGER AS $$
-DECLARE
-    available_tickets INTEGER;
-BEGIN
-    SELECT liczba_dostpenych_biletow
-    INTO available_tickets
-    FROM seanse
-    WHERE seans_id = NEW.seans_id;
-
-    IF available_tickets < 0 THEN
-        RAISE EXCEPTION 'Nie ma wystarczającej liczby dostępnych biletów';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_available_tickets_trigger
-BEFORE INSERT ON bilety
-FOR EACH ROW
-EXECUTE FUNCTION check_available_tickets();
-
--- trrigger sprawdzajacy czy bilety sa jeszcze dostepne
-
 CREATE OR REPLACE FUNCTION check_seat_availability()
 RETURNS TRIGGER AS $$
 DECLARE
